@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulado BB — Cesgranrio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- HOME -->
+    <section id="screen-home" class="screen active">
+      <div class="home-hero">
+        <div class="hero-tag">Banco do Brasil · Cesgranrio</div>
+        <h1 class="hero-title">Simulado<br/><span class="accent">Inteligente</span></h1>
+        <p class="hero-sub">Questões geradas por IA no estilo exato da banca Cesgranrio. Configure, estude e acompanhe sua evolução.</p>
+      </div>
+
+      <div class="config-panel">
+        <div class="config-group">
+          <label class="config-label">Quantidade de questões</label>
+          <div class="chip-group" id="qty-opts">
+            <button class="chip active" data-val="5">5</button>
+            <button class="chip" data-val="10">10</button>
+            <button class="chip" data-val="15">15</button>
+            <button class="chip" data-val="20">20</button>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label class="config-label">Disciplina</label>
+          <div class="chip-group" id="subj-opts">
+            <button class="chip active" data-val="Aleatório">Aleatório</button>
+            <button class="chip" data-val="Língua Portuguesa">Português</button>
+            <button class="chip" data-val="Matemática Financeira">Matemática</button>
+            <button class="chip" data-val="Conhecimentos Bancários">Bancários</button>
+            <button class="chip" data-val="Atualidades do Mercado Financeiro">Atualidades</button>
+            <button class="chip" data-val="Raciocínio Lógico">R. Lógico</button>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <label class="config-label">Tempo por questão</label>
+          <div class="chip-group" id="time-opts">
+            <button class="chip" data-val="60">1 min</button>
+            <button class="chip active" data-val="120">2 min</button>
+            <button class="chip" data-val="180">3 min</button>
+            <button class="chip" data-val="0">Livre</button>
+          </div>
+        </div>
+
+        <button class="btn-start" id="btn-start">
+          <span class="btn-icon">✦</span>
+          Gerar Simulado com IA
+        </button>
+      </div>
+
+      <div id="history-section" class="history-section" style="display:none;">
+        <h3 class="history-title">Histórico de simulados</h3>
+        <div id="history-list"></div>
+        <button class="btn-ghost" onclick="clearHistory()">Limpar histórico</button>
+      </div>
+    </section>
+
+    <!-- LOADING -->
+    <section id="screen-loading" class="screen">
+      <div class="loading-wrap">
+        <div class="loading-orb"></div>
+        <p class="loading-text" id="loading-text">Gerando questões...</p>
+        <p class="loading-sub">Estilo Cesgranrio · Banco do Brasil</p>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="screen-quiz" class="screen">
+      <header class="quiz-header">
+        <div class="quiz-header-left">
+          <div class="quiz-badge" id="quiz-discipline-badge">Simulado BB</div>
+          <span class="quiz-subtitle" id="quiz-subtitle"></span>
+        </div>
+        <div class="quiz-header-right">
+          <button class="btn-ghost-sm" onclick="togglePause()" id="btn-pause">⏸ Pausar</button>
+          <button class="btn-danger-sm" onclick="confirmFinish()">Encerrar</button>
+        </div>
+      </header>
+
+      <div class="progress-section">
+        <div class="progress-meta">
+          <span id="q-counter">Questão 1 de 5</span>
+          <span id="q-answered-count">0 respondidas</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="prog-fill"></div>
+        </div>
+        <div class="progress-dots" id="nav-dots"></div>
+      </div>
+
+      <div class="timer-row" id="timer-row" style="display:none;">
+        <div class="timer-icon">⏱</div>
+        <div class="timer-display" id="timer-display">2:00</div>
+        <div class="timer-bar-wrap">
+          <div class="timer-bar-fill" id="timer-bar-fill"></div>
+        </div>
+      </div>
+
+      <div class="question-wrap">
+        <div class="question-header">
+          <span class="q-num" id="q-num">01</span>
+          <span class="q-subject" id="q-subject-tag">Disciplina</span>
+        </div>
+        <p class="q-text" id="q-text"></p>
+        <div class="options-list" id="q-options"></div>
+        <div class="explanation-box" id="q-explanation" style="display:none;"></div>
+      </div>
+
+      <div class="quiz-nav">
+        <button class="nav-btn" id="btn-prev" onclick="goQ(-1)">← Anterior</button>
+        <button class="nav-btn primary" id="btn-next" onclick="goQ(1)">Próxima →</button>
+      </div>
+    </section>
+
+    <!-- RESULT -->
+    <section id="screen-result" class="screen">
+      <div class="result-hero">
+        <div class="result-score-wrap">
+          <svg class="score-ring" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#1a1a2e" stroke-width="8"/>
+            <circle id="score-arc" cx="60" cy="60" r="52" fill="none" stroke="#00d68f" stroke-width="8"
+              stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327"
+              transform="rotate(-90 60 60)" style="transition: stroke-dashoffset 1.2s ease;"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-pct" id="res-score">0%</div>
+            <div class="score-lbl">aproveitamento</div>
+          </div>
+        </div>
+        <div class="result-verdict" id="result-verdict"></div>
+      </div>
+
+      <div class="result-cards">
+        <div class="result-card green">
+          <div class="rc-val" id="res-correct">0</div>
+          <div class="rc-lbl">Acertos</div>
+        </div>
+        <div class="result-card red">
+          <div class="rc-val" id="res-wrong">0</div>
+          <div class="rc-lbl">Erros</div>
+        </div>
+        <div class="result-card gray">
+          <div class="rc-val" id="res-blank">0</div>
+          <div class="rc-lbl">Em branco</div>
+        </div>
+        <div class="result-card blue">
+          <div class="rc-val" id="res-time">0:00</div>
+          <div class="rc-lbl">Tempo total</div>
+        </div>
+      </div>
+
+      <div class="breakdown-section">
+        <h3 class="breakdown-title">Desempenho por disciplina</h3>
+        <div id="subject-breakdown"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-start" onclick="reviewMode()">Revisar questões</button>
+        <button class="btn-ghost-lg" onclick="showScreen('screen-home')">Novo simulado</button>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
