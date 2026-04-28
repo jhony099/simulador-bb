@@ -117,7 +117,8 @@ Responda SOMENTE com JSON puro:
     const data = await response.json();
     if (data.error) throw new Error(data.error.message);
 
-    const rawText = data.candidates[0].content.parts[0].text;
+    let rawText = data.candidates[0].content.parts[0].text;
+    rawText = rawText.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
     const parsed = JSON.parse(rawText);
 
     state.questions = parsed.questions;
