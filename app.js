@@ -105,17 +105,13 @@ Responda SOMENTE com JSON puro:
   ]
 }`;
 
-  
   const url = 'https://jjrfqbcxjecodnvxcyvi.supabase.co/functions/v1/swift-task';
 
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { response_mime_type: "application/json" }
-      })
+      body: JSON.stringify({ prompt })
     });
 
     const data = await response.json();
@@ -140,8 +136,7 @@ Responda SOMENTE com JSON puro:
   }
 }
 
-/* ---- OS DEMAIS MÉTODOS (RENDER, TIMER, RESULTADO) CONTINUAM IGUAIS ---- */
-
+/* ---- LOADING MESSAGES ---- */
 function animateLoadingMessages() {
   let i = 0;
   const el = document.getElementById('loading-text');
@@ -152,12 +147,15 @@ function animateLoadingMessages() {
   }, 2000);
 }
 
+/* ---- INICIAR QUIZ ---- */
 function startQuiz() {
   showScreen('screen-quiz');
   document.getElementById('quiz-discipline-badge').textContent = 'Simulado BB · Cesgranrio';
   document.getElementById('quiz-subtitle').textContent =
     state.config.subject === 'Aleatório' ? 'Disciplinas variadas' : state.config.subject;
 
+  // Garante que não haja intervalo duplicado
+  clearInterval(state.totalTimerInterval);
   state.totalTimerInterval = setInterval(() => {
     if (!state.paused) state.totalTime++;
   }, 1000);
@@ -166,6 +164,7 @@ function startQuiz() {
   startQuestionTimer();
 }
 
+/* ---- RENDER QUESTÃO ---- */
 function renderQuestion() {
   const { questions, current, answers, revealed } = state;
   const q = questions[current];
@@ -241,6 +240,7 @@ function renderDots() {
   });
 }
 
+/* ---- NAVEGAÇÃO ENTRE QUESTÕES ---- */
 function goQ(dir) {
   if (dir === 1 && state.current === state.questions.length - 1) {
     confirmFinish();
@@ -260,10 +260,10 @@ function updateNavButtons() {
   btnNext.textContent = state.current === state.questions.length - 1 ? 'Finalizar ✓' : 'Próxima →';
 }
 
+/* ---- TIMER ---- */
 function startQuestionTimer() {
   clearInterval(state.timerInterval);
   const row = document.getElementById('timer-row');
-  const display = document.getElementById('timer-display');
   const fill = document.getElementById('timer-bar-fill');
   if (state.config.timePerQ === 0) { row.style.display = 'none'; return; }
   row.style.display = 'flex';
@@ -292,6 +292,7 @@ function updateTimerDisplay() {
 function togglePause() { state.paused = !state.paused; updatePauseBtn(); }
 function updatePauseBtn() { document.getElementById('btn-pause').textContent = state.paused ? '▶ Continuar' : '⏸ Pausar'; }
 
+/* ---- FINALIZAR ---- */
 function confirmFinish() {
   if (Object.keys(state.answers).length < state.questions.length) {
     if (!confirm("Há questões em branco. Deseja finalizar?")) return;
@@ -306,6 +307,7 @@ function clearAllTimers() {
   clearInterval(loadingMsgInterval);
 }
 
+/* ---- RESULTADOS ---- */
 function showResults() {
   showScreen('screen-result');
   const total = state.questions.length;
@@ -333,12 +335,21 @@ function renderBreakdown() {
   `).join('');
 }
 
+/* ---- HISTÓRICO ---- */
 function saveToHistory(pct, correct, total) {
   const history = getHistory();
   history.unshift({ date: new Date().toLocaleString(), subject: state.config.subject, pct, correct, total });
   localStorage.setItem('simulado-bb-history', JSON.stringify(history.slice(0, 10)));
 }
 
-function getHistory() { return JSON.parse(localStorage.getItem('simulado-bb-history') || '[]'); }
-function loadHistory() { /* Implementação básica para popular a lista se necessário */ }
-function clearHistory() { localStorage.removeItem('simulado-bb-history'); }
+function getHistory() {
+  return JSON.parse(localStorage.getItem('simulado-bb-history') || '[]');
+}
+
+function loadHistory() {
+  /* Implementação básica para popular a lista se necessário */
+}
+
+function clearHistory() {
+  localStorage.removeItem('simulado-bb-history');
+}
